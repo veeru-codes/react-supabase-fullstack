@@ -1,2 +1,3 @@
-# react-supabase-fullstack
-A full stack React and Supabase application. 
+# React-Supabase Fullstack
+
+A full stack React and Supabase application - Today-I-Learned.
