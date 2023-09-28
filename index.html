@@ -13,10 +13,10 @@
           <img src="logo.png" alt="Today I Learned Logo" />
           <h1>Today I Learned</h1>
         </div>
-        <button class="btn btn-large">Share a fact</button>
+        <button class="btn btn-large btn-open">Share a fact</button>
       </header>
 
-      <form class="form-fact">
+      <form class="form-fact hidden">
         <input type="text" placeholder="Share a fact with the world..." />
         <span>200</span>
         <input type="text" placeholder="Trustworthy source..." />
@@ -32,20 +32,15 @@
 
       <main class="main">
         <aside>
-          <ul>
+          <ul class="categories-list">
             <li class="category">
               <button class="btn btn-all-categories">All</button>
-            </li>
-            <li class="category">
-              <button class="btn btn-category">Technology</button>
-            </li>
-            <li class="category">
-              <button class="btn btn-category">Science</button>
             </li>
           </ul>
         </aside>
         <section>
-          <ul>
+          <ul class="facts-list">
+            s
             <li class="fact">
               <p>
                 React is being developed by Meta (formerly facebook)
@@ -86,6 +81,6 @@
         </section>
       </main>
     </div>
-    <script src="data.js"></script>
   </body>
+  <script src="script.js"></script>
 </html>
