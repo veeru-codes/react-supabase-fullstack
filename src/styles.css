@@ -14,7 +14,7 @@ body {
 }
 
 /* MAIN LAYOUT */
-.container {
+#root {
   max-width: 1500px;
   margin: auto;
 }
