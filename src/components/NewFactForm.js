@@ -1,17 +1,42 @@
-function NewFactForm() {
+function NewFactForm(props) {
+  const { categories, formData, handleFormData, handleSubmit, isUploading } =
+    props
+
   return (
-    <form className="form-fact">
-      <input type="text" placeholder="Share a fact with the world..." />
-      <span>200</span>
-      <input type="text" placeholder="Trustworthy source..." />
-      <select>
+    <form className="form-fact" onSubmit={handleSubmit}>
+      <input
+        type="text"
+        name="text"
+        placeholder="Share a fact with the world..."
+        value={formData.text}
+        onChange={handleFormData}
+        disabled={isUploading}
+      />
+      <span>{formData.text === '' ? 200 : 200 - formData.text.length}</span>
+      <input
+        type="text"
+        name="source"
+        placeholder="Trustworthy source..."
+        value={formData.source}
+        onChange={handleFormData}
+        disabled={isUploading}
+      />
+      <select
+        name="category"
+        value={formData.category}
+        onChange={handleFormData}
+        disabled={isUploading}
+      >
         <option value="">Choose category:</option>
-        <option value="technology">Technology</option>
-        <option value="science">Science</option>
-        <option value="finance">Finance</option>
-        <option value="society">Society</option>
+        {categories.map((category, i) => (
+          <option value={category.name} key={i}>
+            {category.name[0].toUpperCase() + category.name.slice(1)}
+          </option>
+        ))}
       </select>
-      <button className="btn btn-large">Post</button>
+      <button className="btn btn-large" disabled={isUploading}>
+        Post
+      </button>
     </form>
   )
 }

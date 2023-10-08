@@ -1,9 +1,11 @@
 import React from 'react'
+import supabase from './supabase'
 import './styles.css'
 import Header from './components/Header'
 import NewFactForm from './components/NewFactForm'
 import CategoryFilter from './components/CategoryFilter'
 import Factlist from './components/Factslist'
+import Loader from './components/Loader'
 
 const CATEGORIES = [
   { name: 'technology', color: '#3b82f6' },
@@ -16,52 +18,127 @@ const CATEGORIES = [
   { name: 'news', color: '#8b5cf6' },
 ]
 
-const initialFacts = [
-  {
-    id: 1,
-    text: 'React is being developed by Meta (formerly facebook)',
-    source: 'https://opensource.fb.com/',
-    category: 'technology',
-    votesInteresting: 24,
-    votesMindblowing: 9,
-    votesFalse: 4,
-    createdIn: 2021,
-  },
-  {
-    id: 2,
-    text: 'Millennial dads spend 3 times as much time with their kids than their fathers spent with them. In 1982, 43% of fathers had never changed a diaper. Today, that number is down to 3%',
-    source:
-      'https://www.mother.ly/parenting/millennial-dads-spend-more-time-with-their-kids',
-    category: 'society',
-    votesInteresting: 11,
-    votesMindblowing: 2,
-    votesFalse: 0,
-    createdIn: 2019,
-  },
-  {
-    id: 3,
-    text: 'Lisbon is the capital of Portugal',
-    source: 'https://en.wikipedia.org/wiki/Lisbon',
-    category: 'society',
-    votesInteresting: 8,
-    votesMindblowing: 3,
-    votesFalse: 1,
-    createdIn: 2015,
-  },
-]
-
 function App() {
   const [showForm, setShowForm] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [formData, setFormData] = React.useState({
+    text: '',
+    source: '',
+    category: '',
+  })
+  const [facts, setFacts] = React.useState([])
+  const [currentCategory, setCurrentCategory] = React.useState('all')
+  const [isUploading, setIsUploading] = React.useState(false)
+
+  React.useEffect(() => {
+    async function getFacts() {
+      setIsLoading(true)
+
+      let query = supabase.from('facts').select('*')
+
+      if (currentCategory !== 'all') {
+        query = query.eq('category', currentCategory)
+      }
+
+      const { data: facts, error } = await query
+        .order('votesInteresting', { ascending: false })
+        .limit(1000)
+
+      if (!error) setFacts(facts)
+
+      setIsLoading(false)
+    }
+
+    getFacts()
+  }, [currentCategory])
+
+  function isValidHttpUrl(string) {
+    let url
+    try {
+      url = new URL(string)
+    } catch (_) {
+      return false
+    }
+
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  }
 
   const toggleVisibility = () => setShowForm((prevShowForm) => !prevShowForm)
+
+  const handleFormData = (event) => {
+    setFormData((prevFormData) => {
+      return {
+        ...prevFormData,
+        [event.target.name]: event.target.value,
+      }
+    })
+  }
+
+  const handleSubmit = async (event) => {
+    //  1. Prevent browser reloaa
+    event.preventDefault()
+
+    // 2. Check if data is valid. If so, create a new fact
+    if (
+      formData.text &&
+      isValidHttpUrl(formData.source) &&
+      formData.category &&
+      formData.text.length <= 200
+    ) {
+      setIsUploading(true)
+
+      // 3. Upload fact to Supabase and receive the new fact object
+      const { data, error } = await supabase
+        .from('facts')
+        .insert([
+          {
+            text: formData.text,
+            source: formData.source,
+            category: formData.category,
+          },
+        ])
+        .select()
+
+      setIsUploading(false)
+
+      if (!error) {
+        const newFact = data[0]
+
+        // 4. Add the new fact to the UI: add the fact to state
+        setFacts((prevFacts) => [newFact, ...prevFacts])
+      }
+      // 5. Reset input fields
+      setFormData({ text: '', source: '', category: '' })
+
+      // 6. Close the form
+      setShowForm(false)
+    }
+  }
 
   return (
     <>
       <Header toggleVisibility={toggleVisibility} showForm={showForm} />
-      {showForm ? <NewFactForm showForm={showForm} /> : ''}
+      {showForm ? (
+        <NewFactForm
+          categories={CATEGORIES}
+          formData={formData}
+          handleFormData={handleFormData}
+          handleSubmit={handleSubmit}
+          isUploading={isUploading}
+        />
+      ) : (
+        ''
+      )}
       <main className="main">
-        <CategoryFilter categories={CATEGORIES} />
-        <Factlist initialFacts={initialFacts} categories={CATEGORIES} />
+        <CategoryFilter
+          categories={CATEGORIES}
+          setCurrentCategory={setCurrentCategory}
+        />
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <Factlist facts={facts} categories={CATEGORIES} setFacts={setFacts} />
+        )}
       </main>
     </>
   )
